@@ -8,7 +8,7 @@ swap in an in-memory fake with no Postgres/Kafka.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from ..config import Settings, get_settings
@@ -50,7 +50,7 @@ def _iso_utc(dt: datetime | None) -> str | None:
     if dt is None:
         return None
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
     return dt.isoformat()
 
 
@@ -134,7 +134,10 @@ class SqlCrawlService:
             name=f"crawl-{crawl_id}",
         )
         _RUNNING_CRAWLS[crawl_id] = task
-        task.add_done_callback(lambda _t, cid=crawl_id: _RUNNING_CRAWLS.pop(cid, None))
+        def _clear_running(_t: asyncio.Task[None], cid: int = crawl_id) -> None:
+            _RUNNING_CRAWLS.pop(cid, None)
+
+        task.add_done_callback(_clear_running)
         return len(seeds)
 
     async def stop_crawl(self, crawl_id: int) -> CrawlActionOut | None:

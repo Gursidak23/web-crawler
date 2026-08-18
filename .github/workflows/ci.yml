@@ -18,15 +18,17 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv pip install --system -e ".[dev]"
+        run: |
+          uv venv --python 3.12
+          uv pip install --python .venv/bin/python -e ".[dev]"
 
       - name: Lint (ruff)
-        run: ruff check crawler tests
+        run: .venv/bin/ruff check crawler tests
 
       - name: Type-check (mypy)
-        run: mypy crawler
+        run: .venv/bin/mypy crawler
 
       - name: Run tests
         # Integration tests are marked and auto-skip when Docker is unavailable;
         # on CI the Docker daemon is present so Testcontainers spins up infra.
-        run: pytest -q
+        run: .venv/bin/pytest -q

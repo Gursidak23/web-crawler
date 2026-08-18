@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+# Optional: run Prometheus natively (no Docker) and point it at the crawler
+# processes on the host. The API exposes /metrics on :8010; each worker on its
+# --metrics-port (8001, 8002, ...).
+scrape_configs:
+  - job_name: crawler-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["localhost:8010"]
+        labels:
+          component: api
+
+  - job_name: crawler-workers
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "localhost:8001"
+          - "localhost:8002"
+          - "localhost:8003"
+        labels:
+          component: worker

@@ -1,0 +1,118 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 0,
+  "title": "Web Crawler",
+  "uid": "web-crawler",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-15m", "to": "now" },
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Fetch rate by status class",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(crawler_pages_fetched_total[1m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Fetch latency (p50/p95/p99)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(crawler_fetch_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(crawler_fetch_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(crawler_fetch_latency_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Frontier depth & active fetches",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(crawler_frontier_depth)", "legendFormat": "frontier depth" },
+        { "expr": "sum(crawler_active_fetches)", "legendFormat": "active fetches" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Dedup skipped by kind",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (kind) (rate(crawler_dedup_skipped_total[1m]))",
+          "legendFormat": "{{kind}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Download throughput (bytes/s)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(crawler_bytes_downloaded_total[1m]))", "legendFormat": "bytes/s" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Robots blocked & rate-limit waits",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "sum(rate(crawler_robots_blocked_total[1m]))", "legendFormat": "robots blocked" },
+        { "expr": "sum(rate(crawler_rate_limit_waits_total[1m]))", "legendFormat": "rate-limit waits" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Recrawl efficiency: 304s & bodies stored",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "targets": [
+        { "expr": "sum(rate(crawler_not_modified_total[1m]))", "legendFormat": "304 not-modified/s" },
+        {
+          "expr": "sum by (backend) (rate(crawler_bodies_stored_total[1m]))",
+          "legendFormat": "bodies stored/s ({{backend}})"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Resilience: circuit breakers & budgets",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "targets": [
+        { "expr": "sum(crawler_circuit_breakers_open)", "legendFormat": "open circuits" },
+        { "expr": "sum(rate(crawler_circuit_open_skips_total[1m]))", "legendFormat": "circuit skips/s" },
+        { "expr": "sum(rate(crawler_budget_exhausted_total[1m]))", "legendFormat": "budget-exhausted/s" }
+      ]
+    }
+  ]
+}
